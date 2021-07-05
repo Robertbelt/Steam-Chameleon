@@ -89,8 +89,8 @@ def get_steam_guard(email_login, email_password):
 
 
 def main_menu(user, user_manager):
-    print("1. Copy Profile\n 2. Change Setting")
-    user_input = int(input("Select an option"))
+    print("1. Copy Profile\n2. Change Setting")
+    user_input = int(input("Select An Option: "))
     if user_input == 1:
         copy_profile(user)
 
@@ -99,13 +99,13 @@ def main_menu(user, user_manager):
         setting_index = int(input("Select Which Setting You Would Like To Change: "))
 
         while setting_index <= 0 or setting_index > 5:
-            setting_index = int(input("Plase Select A Valid Option"))
+            setting_index = int(input("Plase Select A Valid Option\n"))
 
         # Toggle; No input
         if setting_index == 3:
             user_manager.update_setting(user, setting_index, setting_value="")
         else:
-            setting_value = input("Enter Your New Value")
+            setting_value = input("Enter Your New Value: ")
             user_manager.update_setting(user, setting_index, setting_value)
         
         user_manager.pickle_user(user)
@@ -114,6 +114,7 @@ def main_menu(user, user_manager):
     else:
         print("Incorrect Input: Pick a valid choice: ")
         main_menu(user, user_manager)
+
 
 def copy_profile(user):
     targetURL = input("Please Enter a target URL: ")
