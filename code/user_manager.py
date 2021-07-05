@@ -1,5 +1,6 @@
 import pickle
 from user import userInfo
+
 class UserManager:
     def pickle_user(self, user):
         with open ("user_data.pkl", 'wb') as output:
@@ -11,7 +12,7 @@ class UserManager:
             return user
 
     
-    def user_settings(self):
+    def show_user_settings(self):
        
         user = self.load_pickled_user()
         
@@ -23,6 +24,28 @@ class UserManager:
         5. Email Password: %s""" % (user.steam_login, user.steam_password, user.email_consent,
         user.email_login, user.email_password)
     
+    def update_setting(user, setting_index, setting_value):
+        if setting_index == 1:
+            user.steam_login = setting_value
+       
+        elif setting_index == 2:
+            user.steam_password  = setting_value
+        
+        elif setting_index == 3:
+            if(user.email_consent):
+                user.email_consent = False
+            else:
+                user.email_consent = True
+       
+        elif setting_index == 4:
+            user.email_login = setting_value
+        
+        else:
+            user.email_password = setting_value
+                
+
+
+
     def get_user_info():
         steam_login = input("Enter your Steam ID: ")
         steam_pwd = input("Enter your Steam Password: ")
