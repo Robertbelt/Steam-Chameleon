@@ -24,7 +24,7 @@ class UserManager:
         5. Email Password: %s""" % (user.steam_login, user.steam_password, user.email_consent,
         user.email_login, user.email_password)
     
-    def update_setting(user, setting_index, setting_value):
+    def update_setting(self, user, setting_index, setting_value):
         if setting_index == 1:
             user.steam_login = setting_value
        

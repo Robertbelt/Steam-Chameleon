@@ -104,16 +104,16 @@ def main_menu(user, user_manager):
         # Toggle; No input
         if setting_index == 3:
             user_manager.update_setting(user, setting_index, setting_value="")
-
-        setting_value = input("Enter Your New Value")
-        user_manager.update_setting(user, setting_index, setting_value)
+        else:
+            setting_value = input("Enter Your New Value")
+            user_manager.update_setting(user, setting_index, setting_value)
+        
         user_manager.pickle_user(user)
         main_menu(user, user_manager)
 
     else:
         print("Incorrect Input: Pick a valid choice: ")
         main_menu(user, user_manager)
-
 
 def copy_profile(user):
     targetURL = input("Please Enter a target URL: ")
