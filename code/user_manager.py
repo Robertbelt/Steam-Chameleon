@@ -15,14 +15,15 @@ class UserManager:
     def show_user_settings(self):
        
         user = self.load_pickled_user()
+    
+        text1 = "\n1. Steam Username: %s\n2. Steam password %s\n3. Email Consent %s\n" 
+        text2 = "4. Email Login %s\n5. Email Password: %s\n"
+
+        selection_list = text1 + text2
+        selection_list = selection_list % (user.steam_login, user.steam_password, 
+        user.email_consent, user.email_login, user.email_password)
         
-        return """\n
-        1. Steam Username: %s
-        2. Steam Password: %s
-        3. Email Consent: %s
-        4. Email Login: %s
-        5. Email Password: %s""" % (user.steam_login, user.steam_password, user.email_consent,
-        user.email_login, user.email_password)
+        return str(selection_list)
     
     def update_setting(self, user, setting_index, setting_value):
         if setting_index == 1:
