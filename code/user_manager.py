@@ -46,7 +46,7 @@ class UserManager:
 
 
 
-    def get_user_info():
+    def get_user_info(self):
         steam_login = input("Enter your Steam ID: ")
         steam_pwd = input("Enter your Steam Password: ")
         user = userInfo(steam_login,steam_pwd)
