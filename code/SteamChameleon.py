@@ -1,5 +1,6 @@
 import imaplib
 import sys
+from time import sleep
 import requests
 import tempfile
 import urllib.request
@@ -16,7 +17,8 @@ from selenium.common.exceptions import ElementNotVisibleException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from user import userInfo
-
+from user_manager import UserManager
+import pickle
 
 def FindImg(soup):
     targetProfilePictureDiv = soup.find("div", "playerAvatarAutoSizeInner")
@@ -29,15 +31,33 @@ def GetImg(imageLink):
     urllib.request.urlretrieve(imageLink, "ProfilePictureCopy")
 
 
+
 def get_user_info():
     steam_login = input("Enter your Steam ID: ")
-    steam_psd = input("Enter your Steam Password")
+    steam_pwd = input("Enter your Steam Password: ")
+    user = userInfo(steam_login,steam_pwd)
+    user_consent = input("Would you like to setup automatic email steam verification?\n"
+      "Enter Y or N:\n")
+    incorrect_input = True
+    while incorrect_input:
+        if user_consent.upper() == "Y":
+            email_login = input("Please enter your email address: ")
+            email_password = input("Please enter your email password: ")
+            user.set_email_info(email_login, email_password)
+            user.email_consent = True
+            incorrect_input = False
+        
+        elif user_consent.upper() == "N":
+            user.email_consent = False
+            incorrect_input = False
 
-    user = userInfo(steam_login,steam_psd)
+        else:
+            user_consent = input("Incorrect Input: Please enter Y or N:\n")
+            incorrect_input = True
+    return user
 
-    user_consent = input("Would you like to setup")
 
-def get_logged_on(email_login, email_password):
+def get_steam_guard(email_login, email_password):
         
         IMAP_server = "imap.mail.yahoo.com"
         imap = imaplib.IMAP4_SSL(IMAP_server)
@@ -58,7 +78,6 @@ def get_logged_on(email_login, email_password):
         
                 res, msg = imap.fetch(email_index, "(RFC822)")
                 whole_body = msg[0][1]
-
                 message = email.message_from_string(whole_body.decode('utf-8'))
                 if message.is_multipart():
                     i = 0
@@ -80,38 +99,18 @@ def get_logged_on(email_login, email_password):
                         for line in f:
                             i += 1
                             if i == 6:
-                                steam_pass = line
+                                steam_guard = line
                 finally:
                     os.remove(path)
                
-                steam_pass = steam_pass.decode()
-                print(steam_pass)
-                # for response in msg:
-                # msg = email.message_from_bytes(msg[-1])
-                
-                
-                # for part in msg.walk():
-                #     content_type = part.get_content_type
-                #     content_disposition = str(part.get('Content-Disposition'))
-                #     body = part.get_payload(decode=True).decode()
-              
-
-
-               
-
-
-
-
-
-
-
-
-
+                steam_guard = steam_guard.decode()
                 imap.close()
-
-
+                print(steam_guard)
+                return steam_guard
+        
         except imaplib.IMAP4.error:
             print("Error while Logging in to email account")
+            imap.close()
             sys.exit(0);
 
 
@@ -136,19 +135,78 @@ def main():
     
     # while(True):
     #     pass;
-
-    get_logged_on("robertobelt4@yahoo.es", "zaaxkgagbjnbtdsv")
-
     
+    user_manager = UserManager()
+    try:
+         user = user_manager.load_pickled_user()
     
+    except:
+        user  = get_user_info()
+        user_manager.pickle_user(user)
 
+    # print(UserManager.user_settings(user_manager))
+
+    # sleep(50)
+
+
+
+
+    targetURL = input("Please Enter a target URL: ")
+    websiteHTML = requests.get(targetURL)
+    soup = BeautifulSoup(websiteHTML.text, "html.parser")
+    driver = webdriver.Chrome(ChromeDriverManager().install())
+
+    FindImg(soup)
+    profileName = soup.find('span', 'actual_persona_name').text
+    
+   
+    driver.get("https://steamcommunity.com/login/home/?goto=%2Fprofiles%2F76561198031035420%2Fedit%2Finfo")
+    
+    wait = WebDriverWait(driver, 1000)
+    Steam_account_login = driver.find_element(By.NAME, "username")
+    Steam_account_login.send_keys(user.steam_login)
+
+    steam_account_password = driver.find_element(By.ID, "input_password")
+    steam_account_password.send_keys(user.steam_password)    
+    # error_message = driver.find_element(By.ID, "error_display")
+    login_button = driver.find_element(By.CLASS_NAME, "login_btn")
+    login_button.click()
+    steam_guard = get_steam_guard(user.email_login, user.email_password)
+
+    if(user.email_consent):
+        code_box = driver.find_element(By.ID, "authcode")
+        code_box.send_keys(steam_guard)
+
+        name_box = driver.find_element(By.ID, "friendlyname")
+        name_box.send_keys("SteamChamelon")
+        try:
+            submit_button = driver.find_element(By.CLASS_NAME, "auth_button_leftbtn")
+            submit_button.click()
+            
+        except:
+            pass
+        
+        
+         # proceed_button = driver.find_element(By.ID, "success_continue_btn")
+        proceed_button = wait.until(EC.visibility_of_element_located((By.ID, "success_continue_btn")))
+        proceed_button.click()
+     
+
+
+
+
+
+    #driver.get("https://steamcommunity.com/profiles/76561198031035420/edit/info")
+    element = wait.until(EC.visibility_of_element_located((By.NAME, 'personaName')))
+    
 
 
     # nameRequest = requests.post("https://steamcommunity.com/profiles/76561198031035420/edit/", FormData(profileName))
 
 
 
-
+    while(True):
+        pass
 
 
 
