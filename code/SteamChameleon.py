@@ -98,12 +98,14 @@ def main_menu(user, user_manager):
         print(user_manager.show_user_settings())
         setting_index = int(input("Select Which Setting You Would Like To Change: "))
 
-        while setting_index <= 0 or setting_index > 5:
+        while setting_index <= 0 or setting_index > 6:
             setting_index = int(input("Plase Select A Valid Option\n"))
 
         # Toggle; No input
         if setting_index == 3:
             user_manager.update_setting(user, setting_index, setting_value="")
+        elif setting_index == 6:
+            main_menu(user, user_manager)
         else:
             setting_value = input("Enter Your New Value: ")
             user_manager.update_setting(user, setting_index, setting_value)
