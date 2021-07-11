@@ -16,8 +16,8 @@ class UserManager:
        
         user = self.load_pickled_user()
     
-        text1 = "\n1. Steam Username: %s\n2. Steam password %s\n3. Email Consent %s\n" 
-        text2 = "4. Email Login %s\n5. Email Password: %s\n6. Back"
+        text1 = "\n1. Steam Username: %s\n2. Steam Password: %s\n3. Email Consent: %s\n" 
+        text2 = "4. Email Login: %s\n5. Email Password: %s\n6. Back"
 
         selection_list = text1 + text2
         selection_list = selection_list % (user.steam_login, user.steam_password, 

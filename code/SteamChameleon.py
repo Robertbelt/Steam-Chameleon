@@ -1,14 +1,9 @@
-import imaplib
-import sys
+import imaplib, sys, requests, tempfile, urllib.request, email, os
 from time import sleep
-import requests
-import tempfile
-import urllib.request
-import email
-import os
 from PIL import Image
 from selenium import webdriver
 from bs4 import BeautifulSoup
+import selenium
 from selenium.webdriver.remote import webelement
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
@@ -18,19 +13,13 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from user import userInfo
 from user_manager import UserManager
-import pickle
-
+from target_user import targetUser
+from selenium.webdriver.support.ui import Select
 
 def FindImg(soup):
     targetProfilePictureDiv = soup.find("div", "playerAvatarAutoSizeInner")
     targetImage = targetProfilePictureDiv.find("img")
-    imageLink = targetImage.attrs["src"]
-    GetImg(imageLink)
-
-
-def GetImg(imageLink):
-    urllib.request.urlretrieve(imageLink, "ProfilePictureCopy")
-
+    return targetImage.attrs["src"]
 
 def get_steam_guard(email_login, email_password):
 
@@ -87,12 +76,12 @@ def get_steam_guard(email_login, email_password):
         imap.close()
         sys.exit(0)
 
-
 def main_menu(user, user_manager):
     print("1. Copy Profile\n2. Change Setting")
     user_input = int(input("Select An Option: "))
-    if user_input == 1:
-        copy_profile(user)
+    if user_input == 1:    
+        target_url = input("Please Enter a target URL: ")
+        login_to_steam(user, target_url)
 
     elif user_input == 2:
         print(user_manager.show_user_settings())
@@ -117,16 +106,8 @@ def main_menu(user, user_manager):
         print("Incorrect Input: Pick a valid choice: ")
         main_menu(user, user_manager)
 
-
-def copy_profile(user):
-    targetURL = input("Please Enter a target URL: ")
-    websiteHTML = requests.get(targetURL)
-    soup = BeautifulSoup(websiteHTML.text, "html.parser")
+def login_to_steam(user, target_url):
     driver = webdriver.Chrome(ChromeDriverManager().install())
-
-    FindImg(soup)
-    profileName = soup.find("span", "actual_persona_name").text
-
     driver.get(
         "https://steamcommunity.com/login/home/?goto=%2Fprofiles%2F76561198031035420%2Fedit%2Finfo"
     )
@@ -140,6 +121,8 @@ def copy_profile(user):
     # error_message = driver.find_element(By.ID, "error_display")
     login_button = driver.find_element(By.CLASS_NAME, "login_btn")
     login_button.click()
+    # TODO: listen for a new email instead of sleeping to wait for it to arrive
+    sleep(2)
     steam_guard = get_steam_guard(user.email_login, user.email_password)
 
     if user.email_consent:
@@ -155,20 +138,138 @@ def copy_profile(user):
         except:
             pass
 
-        # proceed_button = driver.find_element(By.ID, "success_continue_btn")
-        proceed_button = wait.until(
-            EC.visibility_of_element_located((By.ID, "success_continue_btn"))
-        )
+        proceed_button = wait.until(EC.visibility_of_element_located((By.ID, 
+        "success_continue_btn")))
         proceed_button.click()
 
-    # driver.get("https://steamcommunity.com/profiles/76561198031035420/edit/info")
-    element = wait.until(EC.visibility_of_element_located((By.NAME, "personaName")))
+    # passed steam verification
 
-    # nameRequest = requests.post("https://steamcommunity.com/profiles/76561198031035420/edit/", FormData(profileName))
+    edit_profile(wait, driver, target_url)
 
     while True:
         pass
 
+def find_data(driver, target_url):
+    driver_cookies = driver.get_cookies()
+    c = {c['name']:c['value'] for c in driver_cookies}
+    res = requests.get(target_url, cookies= c)
+    soup = BeautifulSoup(res.text,"html.parser")
+    
+    profile_image_link = FindImg(soup)
+    profile_username = soup.find("span", "actual_persona_name").text
+
+
+    # Check if there is a real name header visible
+    try:
+        info_div = soup.find("div", "header_real_name")
+        has_name_header =  True
+    except:
+        has_name_header = False
+        print("Failed to find Real Name and country")
+
+
+    if has_name_header: # Found Name or location info
+        try:
+            info_div = soup.find("div", "header_real_name")
+            profile_real_name = info_div.find("bdi").text
+        
+            if profile_real_name == '':
+                profile_real_name = None
+        except:
+            print("Real Name not found")
+
+        # try:
+        info_div_data = info_div.text
+        info_div_data = info_div_data.replace('\n', "")
+        info_div_data = info_div_data.replace('\r', "")
+        info_div_data = info_div_data.replace("\t", "")
+        info_div_data = info_div_data.replace("\xa0","")
+        if profile_real_name is not None:
+            info_div_data = info_div_data.replace(profile_real_name, "")
+        
+        location_data = info_div_data.split(',')
+        
+        if(location_data[0] == '' and len(location_data) == 1): # L
+            location_data == None
+            print("Location data not found")
+        else:
+            for i in range(0, len(location_data)):
+                if(location_data[i][0]) == ' ':
+                    data  = location_data[i]
+                    data = data[:0] + data[1:]
+                    location_data[i] = data
+        
+            profile_country = None
+            profile_state = None
+            profile_city = None
+            
+            if len(location_data) == 1:
+                profile_country = location_data[0]
+            elif len(location_data) == 2:
+                profile_country = location_data[1]
+                profile_state = location_data[0]
+            else:
+                profile_country = location_data[2]
+                profile_state = location_data[1]
+                profile_city = location_data[0]
+        
+
+
+        try:
+            profile_description = soup.find("div", "profile_summary").text
+            profile_description = ' '.join(profile_description.split())
+        except:
+            print("Profile Description not found")
+
+    target_user = targetUser(profile_image_link, profile_username, profile_real_name,
+                    profile_country, profile_state, profile_city, profile_description)
+        
+    return target_user
+
+def edit_profile(wait, driver, target_url):
+
+    target_user = find_data(driver, target_url)
+
+    # Type target username out
+    profile_username_box = wait.until(EC.visibility_of_element_located((By.NAME, "personaName")))
+    driver.find_element(By.NAME, "personaName").clear()
+    profile_username_box.send_keys(target_user.profile_username)
+
+    # Type Real Name
+    profile_name_box = driver.find_element(By.NAME, 'real_name')
+    profile_name_box.clear()
+    if(target_user.profile_name is not None):
+        profile_name_box.send_keys(target_user.profile_name)
+
+    # Type summary
+    profile_summary_box =  driver.find_element(By.NAME, 'summary')
+    profile_summary_box.clear()
+    profile_summary_box.send_keys(target_user.summary)
+
+    # Country Test
+    index = 0
+    for index in range(0,3):
+        location_tabs = driver.find_elements(By.CLASS_NAME, 'DialogDropDown')
+        dropdown = location_tabs[index]
+        if index == 0 and target_user.profile_country is not None:
+            dropdown_option = "//*[text()='%s']" % (target_user.profile_country)
+        elif index == 1 and target_user.profile_state is not None:
+            dropdown_option = "//*[contains(text(), '%s')]" % (target_user.profile_state)
+        elif index == 2 and target_user.profile_city is not None:
+            dropdown_option = "//*[contains(text(), '%s')]" % (target_user.profile_city)
+        else:
+            break
+        
+        dropdown.click()
+        dropdown_select= wait.until(EC.visibility_of_element_located((By.XPATH, dropdown_option)))
+        dropdown_select.click()
+
+    
+    save_button = driver.find_element(By.CLASS_NAME, 'Primary')
+    save_button.click() # Click save button
+
+    Avatar_button = driver.find_element(By.XPATH, ("//*[contains(text(), 'Avatar')]"))
+    Avatar_button.click() # Click on Avatar tab
 
 def main():
     user_manager = UserManager()
@@ -181,7 +282,6 @@ def main():
         user_manager.pickle_user(user)
 
     main_menu(user, user_manager)
-
 
 main()
 
