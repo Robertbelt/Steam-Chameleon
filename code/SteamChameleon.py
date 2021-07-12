@@ -1,4 +1,4 @@
-import imaplib, sys, requests, tempfile, urllib.request, email, os
+import imaplib, sys, requests, tempfile, urllib.request, email, os, pyautogui
 from time import sleep
 from PIL import Image
 from selenium import webdriver
@@ -16,10 +16,22 @@ from user_manager import UserManager
 from target_user import targetUser
 from selenium.webdriver.support.ui import Select
 
+# Return all the divs in the location output and then just select the 0th one in the return 
+# list because its going to be (no info).
+
+
+
+
 def FindImg(soup):
-    targetProfilePictureDiv = soup.find("div", "playerAvatarAutoSizeInner")
+    targetProfilePictureDiv = soup.find_all("div", "playerAvatarAutoSizeInner")
     targetImage = targetProfilePictureDiv.find("img")
+    
+    
+    
     return targetImage.attrs["src"]
+
+
+
 
 def get_steam_guard(email_login, email_password):
 
@@ -246,13 +258,14 @@ def edit_profile(wait, driver, target_url):
     profile_summary_box.clear()
     profile_summary_box.send_keys(target_user.summary)
 
-    # Country Test
+    # Go through location tabs
     index = 0
     for index in range(0,3):
         location_tabs = driver.find_elements(By.CLASS_NAME, 'DialogDropDown')
         dropdown = location_tabs[index]
         if index == 0 and target_user.profile_country is not None:
             dropdown_option = "//*[text()='%s']" % (target_user.profile_country)
+
         elif index == 1 and target_user.profile_state is not None:
             dropdown_option = "//*[contains(text(), '%s')]" % (target_user.profile_state)
         elif index == 2 and target_user.profile_city is not None:
@@ -262,14 +275,27 @@ def edit_profile(wait, driver, target_url):
         
         dropdown.click()
         dropdown_select= wait.until(EC.visibility_of_element_located((By.XPATH, dropdown_option)))
-        dropdown_select.click()
+        dropdown_select.click() # Click on dropdown corresponding to location
 
     
     save_button = driver.find_element(By.CLASS_NAME, 'Primary')
-    save_button.click() # Click save button
+    save_button.click() # Click Save button
 
     Avatar_button = driver.find_element(By.XPATH, ("//*[contains(text(), 'Avatar')]"))
     Avatar_button.click() # Click on Avatar tab
+
+    upload_button = driver.find_element(By.CLASS_NAME, "DialogButton")
+    upload_button.click()
+    sleep(1)
+    pyautogui.write(target_user.profile_image)
+    pyautogui.press('enter') 
+
+    save_button = wait.until(EC.visibility_of_element_located(By.CLASS_NAME, 'primary'))
+    save_button.click()
+
+
+
+
 
 def main():
     user_manager = UserManager()
