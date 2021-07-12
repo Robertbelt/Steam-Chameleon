@@ -91,23 +91,22 @@ def main_menu(user, user_manager):
         login_to_steam(user, target_url)
 
     elif user_input == 2:
-        print(user_manager.show_user_settings())
+        print(user_manager.show_user_settings()) # Show Settings
         setting_index = int(input("Select Which Setting You Would Like To Change: "))
 
-        while setting_index <= 0 or setting_index > 6:
+        while setting_index <= 0 or setting_index > 6: # Verify Input
             setting_index = int(input("Plase Select A Valid Option\n"))
 
-        # Toggle; No input
-        if setting_index == 3:
+        if setting_index == 3: # Toggle between true and false
             user_manager.update_setting(user, setting_index, setting_value="")
-        elif setting_index == 6:
+        elif setting_index == 6: # return to main menu
             main_menu(user, user_manager)
         else:
-            setting_value = input("Enter Your New Value: ")
+            setting_value = input("Enter Your New Value: ") # Update in user manager
             user_manager.update_setting(user, setting_index, setting_value)
         
-        user_manager.pickle_user(user)
-        main_menu(user, user_manager)
+        user_manager.pickle_user(user) # Save user and return to main menu
+        main_menu(user, user_manager) 
 
     else:
         print("Incorrect Input: Pick a valid choice: ")
