@@ -45,6 +45,12 @@ class UserManager:
         
         else:
             user.email_password = setting_value
+
+        if user.email_consent == False:
+            user.imap_server = None;
+            user.email_login = None;
+            user.email_password = None;
+
                 
     def get_user_info(self):
         steam_login = input("Enter your Steam ID: ")
