@@ -85,45 +85,57 @@ def get_steam_guard(email_login, email_password, imap_server ):
 
 def main_menu(user, user_manager):
     print("1. Copy Profile\n2. Change Setting")
-    user_input = int(input("Select An Option: "))
+    try:
+        user_input = int(input("Select An Option: "))
+    except ValueError:
+        print("Please Enter a Valid Option")
+        main_menu(user, user_manager)
+
+
     if user_input == 1:    
         target_url = input("Please Enter a target URL: ")
         login_to_steam(user, target_url)
 
     elif user_input == 2:
-        print(user_manager.show_user_settings()) # Show Settings
-        setting_index = int(input("Select Which Setting You Would Like To Change: "))
+        in_settings_menu = True
+        while in_settings_menu:
+            print(user_manager.show_user_settings()) # Show Settings
+            try:
+                setting_index = int(input("Select Which Setting You Would Like To Change: "))
+            except ValueError:
+                setting_index = -1
 
-        while setting_index <= 0 or setting_index > 7: # Verify Input
-            setting_index = int(input("Plase Select A Valid Option\n"))
+            while setting_index <= 0 or setting_index > 7: # Verify Input
+                setting_index = int(input("Plase Select A Valid Option: "))
 
-        if setting_index == 3: # Toggle between true and false
-            user_manager.update_setting(user, setting_index, setting_value="")
+            if setting_index == 3: # Toggle between true and false
+                user_manager.update_setting(user, setting_index, setting_value="")
 
-        elif setting_index == 4: # Reselect IMAP
-            print("1. Gmail\n2. Yahoo Mail")
-            _input = input("Select Your Email Server ")
-            loop = True
-            while loop:
-                if int(_input) == 1:
-                    setting_value = "imap.gmail.com"
-                    loop = False
-                elif int(_input) == 2:
-                    setting_value = "imap.mail.yahoo.com"
-                    loop = False
-                else:
-                    _input = input("Invalid Option")
-                
-                user_manager.update_setting(user, setting_index, setting_value)
+            elif setting_index == 4: # Reselect IMAP
+                print("1. Gmail\n2. Yahoo Mail")
+                _input = input("Select Your Email Server ")
+                loop = True
+                while loop:
+                    if int(_input) == 1:
+                        setting_value = "imap.gmail.com"
+                        loop = False
+                    elif int(_input) == 2:
+                        setting_value = "imap.mail.yahoo.com"
+                        loop = False
+                    else:
+                        _input = input("Invalid Option")
+                    
+                    user_manager.update_setting(user, setting_index, setting_value)
 
-        elif setting_index == 7: # return to main menu
-            main_menu(user, user_manager)
-       
-        else:
-            setting_value = input("Enter Your New Value: ")  # Get the new value
-            user_manager.update_setting(user, setting_index, setting_value) # Update in user manager
+            elif setting_index == 7: # return to main menu
+                in_settings_menu = False
+                main_menu(user, user_manager)
         
-        user_manager.pickle_user(user) # Save user and return to main menu
+            else:
+                setting_value = input("Enter Your New Value: ")  # Get the new value
+                user_manager.update_setting(user, setting_index, setting_value) # Update in user manager
+            
+            user_manager.pickle_user(user) # Save user and return to main menu
         main_menu(user, user_manager) 
 
     else:
