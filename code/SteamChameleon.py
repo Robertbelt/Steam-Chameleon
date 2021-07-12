@@ -101,7 +101,8 @@ def main_menu(user, user_manager):
             user_manager.update_setting(user, setting_index, setting_value="")
 
         elif setting_index == 4: # Reselect IMAP
-            _input =  input("Select Your Email Server ")
+            print("1. Gmail\n2. Yahoo Mail")
+            _input = input("Select Your Email Server ")
             loop = True
             while loop:
                 if int(_input) == 1:
@@ -112,6 +113,8 @@ def main_menu(user, user_manager):
                     loop = False
                 else:
                     _input = input("Invalid Option")
+                
+                user_manager.update_setting(user, setting_index, setting_value)
 
         elif setting_index == 7: # return to main menu
             main_menu(user, user_manager)
