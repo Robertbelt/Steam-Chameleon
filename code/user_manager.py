@@ -11,17 +11,16 @@ class UserManager:
             user = pickle.load(input)
             return user
 
-    
     def show_user_settings(self):
        
         user = self.load_pickled_user()
     
         text1 = "\n1. Steam Username: %s\n2. Steam Password: %s\n3. Email Consent: %s\n" 
-        text2 = "4. Email Login: %s\n5. Email Password: %s\n6. Back"
+        text2 = "4. Email Provider: %s\n5. Email Login: %s\n6. Email Password: %s\n7. Back"
 
         selection_list = text1 + text2
         selection_list = selection_list % (user.steam_login, user.steam_password, 
-        user.email_consent, user.email_login, user.email_password)
+        user.email_consent, user.imap_server, user.email_login, user.email_password)
         
         return str(selection_list)
     
@@ -39,14 +38,14 @@ class UserManager:
                 user.email_consent = True
        
         elif setting_index == 4:
+            user.imap_server = setting_value
+
+        elif setting_index == 5:
             user.email_login = setting_value
         
         else:
             user.email_password = setting_value
                 
-
-
-
     def get_user_info(self):
         steam_login = input("Enter your Steam ID: ")
         steam_pwd = input("Enter your Steam Password: ")

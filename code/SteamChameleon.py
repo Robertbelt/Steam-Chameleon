@@ -94,16 +94,31 @@ def main_menu(user, user_manager):
         print(user_manager.show_user_settings()) # Show Settings
         setting_index = int(input("Select Which Setting You Would Like To Change: "))
 
-        while setting_index <= 0 or setting_index > 6: # Verify Input
+        while setting_index <= 0 or setting_index > 7: # Verify Input
             setting_index = int(input("Plase Select A Valid Option\n"))
 
         if setting_index == 3: # Toggle between true and false
             user_manager.update_setting(user, setting_index, setting_value="")
-        elif setting_index == 6: # return to main menu
+
+        elif setting_index == 4: # Reselect IMAP
+            _input =  input("Select Your Email Server ")
+            loop = True
+            while loop:
+                if int(_input) == 1:
+                    setting_value = "imap.gmail.com"
+                    loop = False
+                elif int(_input) == 2:
+                    setting_value = "imap.mail.yahoo.com"
+                    loop = False
+                else:
+                    _input = input("Invalid Option")
+
+        elif setting_index == 7: # return to main menu
             main_menu(user, user_manager)
+       
         else:
-            setting_value = input("Enter Your New Value: ") # Update in user manager
-            user_manager.update_setting(user, setting_index, setting_value)
+            setting_value = input("Enter Your New Value: ")  # Get the new value
+            user_manager.update_setting(user, setting_index, setting_value) # Update in user manager
         
         user_manager.pickle_user(user) # Save user and return to main menu
         main_menu(user, user_manager) 
