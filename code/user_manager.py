@@ -54,11 +54,24 @@ class UserManager:
         user_consent = input("Would you like to setup automatic email steam verification?\n"
         "Enter Y or N:\n")
         incorrect_input = True
-        while incorrect_input:
+        while incorrect_input: # Set up Email Information 
             if user_consent.upper() == "Y":
+                print("1. Gmail\n2. Yahoo Mail")
+                _input =  input("Select Your Email Server ")
+                loop = True
+                while loop:
+                    if int(_input) == 1:
+                        imap_server = "imap.gmail.com"
+                        loop = False
+                    elif int(_input) == 2:
+                        imap_server = "imap.mail.yahoo.com"
+                        loop = False
+                    else:
+                        _input = input("Invalid Option")
+
                 email_login = input("Please enter your email address: ")
                 email_password = input("Please enter your email password: ")
-                user.set_email_info(email_login, email_password)
+                user.set_email_info(imap_server, email_login, email_password)
                 user.email_consent = True
                 incorrect_input = False
             

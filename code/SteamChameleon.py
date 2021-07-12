@@ -19,9 +19,6 @@ from selenium.webdriver.support.ui import Select
 # Return all the divs in the location output and then just select the 0th one in the return 
 # list because its going to be (no info).
 
-
-
-
 def find_img(soup):
     trgt_profile_pic_div = soup.find("div", "playerAvatarAutoSizeInner")
     target_images = trgt_profile_pic_div.find_all("img")
@@ -32,12 +29,9 @@ def find_img(soup):
     
     return target_image.string 
 
+def get_steam_guard(email_login, email_password, imap_server ):
 
-
-def get_steam_guard(email_login, email_password):
-
-    IMAP_server = "imap.mail.yahoo.com"
-    imap = imaplib.IMAP4_SSL(IMAP_server)
+    imap = imaplib.IMAP4_SSL(imap_server)
 
     try:
         status, summary = imap.login(email_login, email_password)
@@ -136,7 +130,7 @@ def login_to_steam(user, target_url):
     login_button.click()
     # TODO: listen for a new email instead of sleeping to wait for it to arrive
     sleep(2)
-    steam_guard = get_steam_guard(user.email_login, user.email_password)
+    steam_guard = get_steam_guard(user.email_login, user.email_password, user.imap_server)
 
     if user.email_consent:
         code_box = driver.find_element(By.ID, "authcode")
@@ -291,12 +285,8 @@ def edit_profile(wait, driver, target_url):
     pyautogui.write(target_user.profile_image)
     pyautogui.press('enter') 
 
-    save_button = wait.until(EC.visibility_of_element_located(By.CLASS_NAME, 'primary'))
+    save_button = driver.find_element(By.CLASS_NAME, 'Primary')
     save_button.click()
-
-
-
-
 
 def main():
     user_manager = UserManager()
