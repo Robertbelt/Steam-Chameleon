@@ -91,7 +91,6 @@ def main_menu(user, user_manager):
         print("Please Enter a Valid Option")
         main_menu(user, user_manager)
 
-
     if user_input == 1:    
         target_url = input("Please Enter a target URL: ")
         login_to_steam(user, target_url)
@@ -129,7 +128,6 @@ def main_menu(user, user_manager):
 
             elif setting_index == 7: # return to main menu
                 in_settings_menu = False
-                main_menu(user, user_manager)
         
             else:
                 setting_value = input("Enter Your New Value: ")  # Get the new value
