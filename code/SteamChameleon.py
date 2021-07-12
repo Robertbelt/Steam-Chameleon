@@ -1,4 +1,4 @@
-import imaplib, sys, requests, tempfile, urllib.request, email, os, pyautogui
+import imaplib, sys, requests, tempfile, urllib.request, email, os, pyautogui, re
 from time import sleep
 from PIL import Image
 from selenium import webdriver
@@ -22,14 +22,15 @@ from selenium.webdriver.support.ui import Select
 
 
 
-def FindImg(soup):
-    targetProfilePictureDiv = soup.find_all("div", "playerAvatarAutoSizeInner")
-    targetImage = targetProfilePictureDiv.find("img")
+def find_img(soup):
+    trgt_profile_pic_div = soup.find("div", "playerAvatarAutoSizeInner")
+    target_images = trgt_profile_pic_div.find_all("img")
+    urls = [img['src'] for img in target_images] # Finds all the URLs of the images
     
+    for url in urls:
+        target_image = re.search(r'/([\w_-]+[.](jpg|gif))$', url) # only find .jpg and .gif
     
-    
-    return targetImage.attrs["src"]
-
+    return target_image.string 
 
 
 
@@ -167,7 +168,7 @@ def find_data(driver, target_url):
     res = requests.get(target_url, cookies= c)
     soup = BeautifulSoup(res.text,"html.parser")
     
-    profile_image_link = FindImg(soup)
+    profile_image_link = find_img(soup)
     profile_username = soup.find("span", "actual_persona_name").text
 
 
