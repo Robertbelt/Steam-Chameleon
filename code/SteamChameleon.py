@@ -79,7 +79,7 @@ def get_steam_guard(email_login, email_password, imap_server ):
             return steam_guard
 
     except imaplib.IMAP4.error:
-        print("Error while Logging in to email account")
+        print("Error while Logging in to email account. Check Login Info")
         imap.close()
         sys.exit(0)
 
@@ -286,15 +286,14 @@ def edit_profile(wait, driver, target_url):
         location_tabs = driver.find_elements(By.CLASS_NAME, 'DialogDropDown')
         dropdown = location_tabs[index]
         if index == 0 and target_user.profile_country is not None:
-            dropdown_option = "//*[text()='%s']" % (target_user.profile_country)
-
+            dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_country)
         elif index == 1 and target_user.profile_state is not None:
-            dropdown_option = "//*[contains(text(), '%s')]" % (target_user.profile_state)
+            dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_state)
         elif index == 2 and target_user.profile_city is not None:
-            dropdown_option = "//*[contains(text(), '%s')]" % (target_user.profile_city)
+            dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_city)
         else:
             break
-        
+       
         dropdown.click()
         dropdown_select= wait.until(EC.visibility_of_element_located((By.XPATH, dropdown_option)))
         dropdown_select.click() # Click on dropdown corresponding to location
@@ -312,7 +311,7 @@ def edit_profile(wait, driver, target_url):
     pyautogui.write(target_user.profile_image)
     pyautogui.press('enter') 
 
-    save_button = driver.find_element(By.CLASS_NAME, 'Primary')
+    save_button = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'Primary')))
     save_button.click()
 
 def main():
