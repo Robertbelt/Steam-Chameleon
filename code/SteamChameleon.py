@@ -190,7 +190,7 @@ def find_data(driver, target_url):
     soup = BeautifulSoup(res.text,"html.parser")
     
     profile_image_link = find_img(soup)
-    profile_username = soup.find("span", "actual_persona_name").text
+    profile_username = soup.find("span", "actual_persona_name").text + " ุ"
 
 
     # Check if there is a real name header visible
@@ -246,19 +246,58 @@ def find_data(driver, target_url):
                 profile_country = location_data[2]
                 profile_state = location_data[1]
                 profile_city = location_data[0]
-        
-
-
         try:
-            profile_description = soup.find("div", "profile_summary").text
-            profile_description = ' '.join(profile_description.split())
+            profile_description = soup.find("div", "profile_summary")
+            profile_description_text = profile_description.text
+            profile_description_text = ' '.join(profile_description_text.split())
+
+            children_div = profile_description.find_all("div", "bb_h1")
+            for child in children_div:
+                child_text = ' '.join(child.text.split())
+                child_edited = "[h1]%s[/h1]" % (child_text)
+                profile_description_text = profile_description_text.replace(child_text, child_edited)
+
+            children_i = profile_description.find_all("i")
+            for child in children_i:
+                child_text = ' '.join(child.text.split())
+                child_edited = "[i]%s[/i]" % (child_text)
+                profile_description_text = profile_description_text.replace(child_text, child_edited)
+                
+            children_b = profile_description.find_all("b")
+            for child in children_b:
+                child_text = ' '.join(child.text.split())
+                child_edited = "[b]%s[/b]" % (child_text)
+                profile_description_text = profile_description_text.replace(child_text, child_edited)
+
+            children_spoiler = profile_description.find_all("span", "bb_spoiler")
+            for child in children_spoiler:
+                child_text = ' '.join(child.text.split())
+                child_edited = "[spoiler]%s[/spoiler]" % (child_text)
+                profile_description_text = profile_description_text.replace(child_text, child_edited)
+
+            children_a = profile_description.find_all('a', 'bb_link')
+
+            for child in children_a:   
+                try:
+                    child_ = child.contents[0].attrs
+                except:
+                    if 'https://' in child.text or 'http://' in child.text:
+                        pass
+                    else:
+                        name_to_remove = child.get('href').replace("https://steamcommunity.com/linkfilter/?url=https://", '')
+                        url = child.get('href').replace("https://steamcommunity.com/linkfilter/?url=", '')
+                        name_to_remove = name_to_remove.split('/', 1)[0]
+                        name_to_remove = '[%s]' % name_to_remove
+                        profile_description_text = profile_description_text.replace(name_to_remove, '')
+                        child_text = ' '.join(child.text.split())
+                        child_edited = "[url=%s]%s[/url]" % (url, child_text)
+                        profile_description_text = profile_description_text.replace(child_text, child_edited)
         except:
             print("Profile Description not found")
 
-    target_user = targetUser(profile_image_link, profile_username, profile_real_name,
-                    profile_country, profile_state, profile_city, profile_description)
-        
-    return target_user
+        target_user = targetUser(profile_image_link, profile_username, profile_real_name,
+                                profile_country, profile_state, profile_city, profile_description_text)       
+        return target_user
 
 def edit_profile(wait, driver, target_url):
 
@@ -295,8 +334,8 @@ def edit_profile(wait, driver, target_url):
             break
        
         dropdown.click()
-        dropdown_select= wait.until(EC.visibility_of_element_located((By.XPATH, dropdown_option)))
-        dropdown_select.click() # Click on dropdown corresponding to location
+        dropdown_select= wait.until(EC.visibility_of_all_elements_located((By.XPATH, dropdown_option)))
+        dropdown_select[0].click() # Click on dropdown corresponding to location
 
     
     save_button = driver.find_element(By.CLASS_NAME, 'Primary')
@@ -310,8 +349,8 @@ def edit_profile(wait, driver, target_url):
     sleep(1)
     pyautogui.write(target_user.profile_image)
     pyautogui.press('enter') 
-
-    save_button = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'Primary')))
+    sleep(1)
+    save_button = wait.until(EC.visibility_of_element_located((By.XPATH, "//button[text()='Save']")))
     save_button.click()
 
 def main():
