@@ -16,9 +16,6 @@ from user_manager import UserManager
 from target_user import targetUser
 from selenium.webdriver.support.ui import Select
 
-# Return all the divs in the location output and then just select the 0th one in the return 
-# list because its going to be (no info).
-
 def find_img(soup):
     trgt_profile_pic_div = soup.find("div", "playerAvatarAutoSizeInner")
     target_images = trgt_profile_pic_div.find_all("img")
@@ -366,13 +363,3 @@ def main():
     main_menu(user, user_manager)
 
 main()
-
-# r = requests.get("https://steamcommunity.com/id/RawrCapture/")
-# soup = BeautifulSoup(r.text, "html.parser")
-
-
-# imageLink = FindImgURL(soup)
-# urllib.request.urlretrieve(imageLink, "gfg.jpg")
-
-# img = Image.open('gfg.jpg')
-# img.show()
