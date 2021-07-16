@@ -1,4 +1,4 @@
-import imaplib, sys, requests, tempfile, urllib.request, email, os, pyautogui, re
+import imaplib, sys, requests, tempfile, urllib.request, email, os, pyautogui, re, threading
 from time import sleep
 from PIL import Image
 from selenium import webdriver
@@ -24,7 +24,7 @@ def find_img(soup):
     for url in urls:
         target_image = re.search(r'/([\w_-]+[.](jpg|gif))$', url) # only find .jpg and .gif
     
-    return target_image.string 
+    return target_image.string
 
 def get_steam_guard(email_login, email_password, imap_server ):
 
@@ -344,7 +344,9 @@ def edit_profile(wait, driver, target_url):
     upload_button = driver.find_element(By.CLASS_NAME, "DialogButton")
     upload_button.click()
     sleep(1)
-    pyautogui.write(target_user.profile_image)
+    thread = threading.Thread(pyautogui.write(target_user.profile_image))
+    thread.start()
+    thread.join()
     pyautogui.press('enter') 
     sleep(1)
     save_button = wait.until(EC.visibility_of_element_located((By.XPATH, "//button[text()='Save']")))
