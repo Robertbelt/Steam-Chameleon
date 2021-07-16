@@ -1,4 +1,4 @@
-import imaplib, sys, requests, tempfile, urllib.request, email, os, pyautogui, re, threading
+import imaplib, sys, requests, tempfile, email, os, pyautogui, re, threading
 from time import sleep
 from PIL import Image
 from selenium import webdriver
@@ -209,40 +209,46 @@ def find_data(driver, target_url):
         except:
             print("Real Name not found")
 
-        # try:
-        info_div_data = info_div.text
-        info_div_data = info_div_data.replace('\n', "")
-        info_div_data = info_div_data.replace('\r', "")
-        info_div_data = info_div_data.replace("\t", "")
-        info_div_data = info_div_data.replace("\xa0","")
-        if profile_real_name is not None:
-            info_div_data = info_div_data.replace(profile_real_name, "")
-        
-        location_data = info_div_data.split(',')
-        
-        if(location_data[0] == '' and len(location_data) == 1): # L
-            location_data == None
-            print("Location data not found")
-        else:
-            for i in range(0, len(location_data)):
-                if(location_data[i][0]) == ' ':
-                    data  = location_data[i]
-                    data = data[:0] + data[1:]
-                    location_data[i] = data
-        
-            profile_country = None
-            profile_state = None
-            profile_city = None
+        try:
+            info_div_data = info_div.text
+            info_div_data = info_div_data.replace('\n', "")
+            info_div_data = info_div_data.replace('\r', "")
+            info_div_data = info_div_data.replace("\t", "")
+            info_div_data = info_div_data.replace("\xa0","")
+            if profile_real_name is not None:
+                info_div_data = info_div_data.replace(profile_real_name, "")
             
-            if len(location_data) == 1:
-                profile_country = location_data[0]
-            elif len(location_data) == 2:
-                profile_country = location_data[1]
-                profile_state = location_data[0]
+            location_data = info_div_data.split(',')
+            
+            if(location_data[0] == '' and len(location_data) == 1): # L
+                location_data == None
+                print("Location data not found")
             else:
-                profile_country = location_data[2]
-                profile_state = location_data[1]
-                profile_city = location_data[0]
+                for i in range(0, len(location_data)):
+                    if(location_data[i][0]) == ' ':
+                        data  = location_data[i]
+                        data = data[:0] + data[1:]
+                        location_data[i] = data
+            
+                profile_country = None
+                profile_state = None
+                profile_city = None
+                
+                if len(location_data) == 1:
+                    profile_country = location_data[0]
+                elif len(location_data) == 2:
+                    profile_country = location_data[1]
+                    profile_state = location_data[0]
+                else:
+                    profile_country = location_data[2]
+                    profile_state = location_data[1]
+                    profile_city = location_data[0]
+        except :
+            print("Profile Name/Country not found")
+            profile_real_name = None
+            profile_country = None
+            profile_city = None
+            profile_state = None
         try:
             profile_description = soup.find("div", "profile_summary")
             profile_description_text = profile_description.text
@@ -291,6 +297,7 @@ def find_data(driver, target_url):
                         profile_description_text = profile_description_text.replace(child_text, child_edited)
         except:
             print("Profile Description not found")
+            profile_description_text = None
 
         target_user = targetUser(profile_image_link, profile_username, profile_real_name,
                                 profile_country, profile_state, profile_city, profile_description_text)       
@@ -314,8 +321,8 @@ def edit_profile(wait, driver, target_url):
     # Type summary
     profile_summary_box =  driver.find_element(By.NAME, 'summary')
     profile_summary_box.clear()
-    profile_summary_box.send_keys(target_user.summary)
-
+    if target_user.summary is not None:
+        profile_summary_box.send_keys(target_user.summary)
     # Go through location tabs
     index = 0
     for index in range(0,3):
@@ -323,12 +330,16 @@ def edit_profile(wait, driver, target_url):
         dropdown = location_tabs[index]
         if index == 0 and target_user.profile_country is not None:
             dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_country)
-        elif index == 1 and target_user.profile_state is not None:
-            dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_state)
-        elif index == 2 and target_user.profile_city is not None:
-            dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_city)
-        else:
+        elif index == 0 and target_user.profile_country is None:
+            dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='(Do not display)']"
             break
+        else:
+            if index == 1 and target_user.profile_state is not None:
+                dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_state)
+            elif index == 2 and target_user.profile_city is not None:
+                dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_city)
+            else:
+                break
        
         dropdown.click()
         dropdown_select= wait.until(EC.visibility_of_all_elements_located((By.XPATH, dropdown_option)))
