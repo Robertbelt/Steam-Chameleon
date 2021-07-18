@@ -222,17 +222,19 @@ def find_data(driver, target_url):
             
             if(location_data[0] == '' and len(location_data) == 1): # L
                 location_data == None
+                profile_country = None
+                profile_state = None
+                profile_city = None
                 print("Location data not found")
             else:
+                profile_state = None
+                profile_city = None
                 for i in range(0, len(location_data)):
                     if(location_data[i][0]) == ' ':
                         data  = location_data[i]
                         data = data[:0] + data[1:]
                         location_data[i] = data
-            
-                profile_country = None
-                profile_state = None
-                profile_city = None
+        
                 
                 if len(location_data) == 1:
                     profile_country = location_data[0]
@@ -323,7 +325,6 @@ def edit_profile(wait, driver, target_url):
     if target_user.summary is not None:
         profile_summary_box.send_keys(target_user.summary)
     # Go through location tabs
-    index = 0
     try: 
         for index in range(0,3):
             location_tabs = driver.find_elements(By.CLASS_NAME, 'DialogDropDown')
@@ -332,7 +333,6 @@ def edit_profile(wait, driver, target_url):
                 dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_country)
             elif index == 0 and target_user.profile_country is None:
                 dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='(Do not display)']"
-                break
             else:
                 if index == 1 and target_user.profile_state is not None:
                     dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_state)
@@ -340,11 +340,11 @@ def edit_profile(wait, driver, target_url):
                     dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_city)
                 else:
                     break
+            dropdown.click()
+            dropdown_select= wait.until(EC.visibility_of_all_elements_located((By.XPATH, dropdown_option)))
+            dropdown_select[0].click() # Click on dropdown corresponding to location
     except:
         pass
-        dropdown.click()
-        dropdown_select= wait.until(EC.visibility_of_all_elements_located((By.XPATH, dropdown_option)))
-        dropdown_select[0].click() # Click on dropdown corresponding to location
 
     
     save_button = driver.find_element(By.CLASS_NAME, 'Primary')
@@ -360,7 +360,7 @@ def edit_profile(wait, driver, target_url):
     thread.start()
     thread.join()
     pyautogui.press('enter') 
-    sleep(1)
+    sleep(1.5)
     save_button = wait.until(EC.visibility_of_element_located((By.XPATH, "//button[text()='Save']")))
     save_button.click()
 
