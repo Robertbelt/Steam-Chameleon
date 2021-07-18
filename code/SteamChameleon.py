@@ -153,7 +153,7 @@ def login_to_steam(user, target_url):
     login_button = driver.find_element(By.CLASS_NAME, "login_btn")
     login_button.click()
     # TODO: listen for a new email instead of sleeping to wait for it to arrive
-    sleep(2)
+    sleep(3)
     steam_guard = get_steam_guard(user.email_login, user.email_password, user.imap_server)
 
     if user.email_consent:
@@ -243,7 +243,7 @@ def find_data(driver, target_url):
                     profile_country = location_data[2]
                     profile_state = location_data[1]
                     profile_city = location_data[0]
-        except :
+        except:
             print("Profile Name/Country not found")
             profile_real_name = None
             profile_country = None
@@ -279,7 +279,6 @@ def find_data(driver, target_url):
                 profile_description_text = profile_description_text.replace(child_text, child_edited)
 
             children_a = profile_description.find_all('a', 'bb_link')
-
             for child in children_a:   
                 try:
                     child_ = child.contents[0].attrs
@@ -325,22 +324,24 @@ def edit_profile(wait, driver, target_url):
         profile_summary_box.send_keys(target_user.summary)
     # Go through location tabs
     index = 0
-    for index in range(0,3):
-        location_tabs = driver.find_elements(By.CLASS_NAME, 'DialogDropDown')
-        dropdown = location_tabs[index]
-        if index == 0 and target_user.profile_country is not None:
-            dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_country)
-        elif index == 0 and target_user.profile_country is None:
-            dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='(Do not display)']"
-            break
-        else:
-            if index == 1 and target_user.profile_state is not None:
-                dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_state)
-            elif index == 2 and target_user.profile_city is not None:
-                dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_city)
-            else:
+    try: 
+        for index in range(0,3):
+            location_tabs = driver.find_elements(By.CLASS_NAME, 'DialogDropDown')
+            dropdown = location_tabs[index]
+            if index == 0 and target_user.profile_country is not None:
+                dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_country)
+            elif index == 0 and target_user.profile_country is None:
+                dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='(Do not display)']"
                 break
-       
+            else:
+                if index == 1 and target_user.profile_state is not None:
+                    dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_state)
+                elif index == 2 and target_user.profile_city is not None:
+                    dropdown_option = "//div[@class='dropdown_DialogDropDownMenu_Item_2oAiZ' and text()='%s']" % (target_user.profile_city)
+                else:
+                    break
+    except:
+        pass
         dropdown.click()
         dropdown_select= wait.until(EC.visibility_of_all_elements_located((By.XPATH, dropdown_option)))
         dropdown_select[0].click() # Click on dropdown corresponding to location
